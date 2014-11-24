@@ -1,0 +1,30 @@
+{
+    "name": "devgroup/yii2-tag-dependency-helper",
+    "description": "Helper for unifying cache tag names with invalidation support in yii2",
+    "type": "yii2-extension",
+    "keywords": ["yii2","cache"],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Alexander Kozhevnikov",
+            "email": "b37hr3z3n@gmail.com"
+        },
+        {
+            "name": "Evgeny Dubovitsky",
+            "email": "flynn068@gmail.com"
+        },
+        {
+            "name": "Pavel Fedotov",
+            "email": "fps.06@mail.ru"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {
+        "yiisoft/yii2": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "devgroup\\TagDependencyHelper\\": ""
+        }
+    }
+}
