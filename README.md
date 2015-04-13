@@ -10,4 +10,61 @@ Helper for unifying cache tag names with invalidation support for Yii2.
 Usage
 -----
 
-TBD
+In your model add behavior:
+
+
+``` php
+
+/**
+ * @inheritdoc
+ */
+public function behaviors()
+{
+    return [
+        [
+            'class' => \devgroup\TagDependencyHelper\ActiveRecordHelper::className(),
+        ],
+    ];
+}
+
+```
+
+This behavior automatically invalidates tags by model name and pair model-id.
+
+If your cache entry should be flushed every time any row of model is edited - use `getCommonTag` helper function:
+
+``` php
+$models = Configurable::getDb()->cache(
+    function ($db) {
+        return Configurable::find()->all($db);
+    },
+    86400,
+    new TagDependency([
+        'tags' => ActiveRecordHelper::getCommonTag(Configurable::className()),
+    ])
+);
+```
+
+If your cache entry should be flushed only when exact row of model is edited - use `getObjectTag` helper function:
+
+``` php
+$cacheKey = 'Product:' . $model_id;
+if (false === $product = Yii::$app->cache->get($cacheKey)) {
+    if (null === $product = Product::findById($model_id)) {
+        throw new NotFoundHttpException;
+    }
+    Yii::$app->cache->set(
+        $cacheKey,
+        $product,
+        86400,
+        new TagDependency(
+            [
+                'tags' => [
+                    ActiveRecordHelper::getObjectTag(Product::className(), $model_id),
+                ]
+            ]
+        )
+    );
+}
+
+```
