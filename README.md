@@ -23,6 +23,7 @@ public function behaviors()
     return [
         [
             'class' => \devgroup\TagDependencyHelper\ActiveRecordHelper::className(),
+            'cache' => 'cache', // optional option - application id of cache component
         ],
     ];
 }
