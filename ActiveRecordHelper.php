@@ -4,7 +4,9 @@ namespace devgroup\TagDependencyHelper;
 
 use Yii;
 use yii\base\Behavior;
+use yii\base\InvalidConfigException;
 use yii\base\InvalidParamException;
+use yii\caching\Cache;
 use yii\db\ActiveRecord;
 
 /**
@@ -16,6 +18,9 @@ use yii\db\ActiveRecord;
  */
 class ActiveRecordHelper extends Behavior
 {
+    /** @var Cache */
+    public $cache = 'cache';
+
     /**
      * Get events list.
      * @return array
@@ -36,7 +41,7 @@ class ActiveRecordHelper extends Behavior
     public function invalidateTags()
     {
         \yii\caching\TagDependency::invalidate(
-            Yii::$app->cache,
+            $this->getCacheComponent(),
             [
                 self::getCommonTag($this->owner->className()),
                 self::getObjectTag($this->owner->className(), $this->owner->id),
@@ -96,5 +101,21 @@ class ActiveRecordHelper extends Behavior
     public function objectTag()
     {
         return $this->owner->className() . '[ObjectTag:' . $this->owner->id . ']';
+    }
+
+    /**
+     * @return Cache
+     * @throws InvalidConfigException
+     */
+    private function getCacheComponent()
+    {
+        if (!($this->cache instanceof Cache)){
+            $this->cache = is_string($this->cache)?Yii::$app->{$this->cache}:null;
+            if(!$this->cache){
+                throw new InvalidConfigException('Invalid cache Id');
+            }
+        }
+
+        return $this->cache;
     }
 }
