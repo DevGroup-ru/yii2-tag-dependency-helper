@@ -43,8 +43,8 @@ class ActiveRecordHelper extends Behavior
         \yii\caching\TagDependency::invalidate(
             $this->getCacheComponent(),
             [
-                self::getCommonTag($this->owner->className()),
-                self::getObjectTag($this->owner->className(), $this->owner->id),
+                $this->commonTag(),
+                $this->objectTag(),
             ]
         );
         return true;
@@ -82,7 +82,7 @@ class ActiveRecordHelper extends Behavior
         if (!is_string($class)) {
             throw new InvalidParamException('Param $class must be a string or an object.');
         }
-        return $class . '[ObjectTag:' . $id . ']';
+        return $class . '[ObjectTag:' . self::getCacheKeyById($id) . ']';
     }
 
     /**
@@ -100,7 +100,8 @@ class ActiveRecordHelper extends Behavior
      */
     public function objectTag()
     {
-        return $this->owner->className() . '[ObjectTag:' . $this->owner->id . ']';
+        /** @var ActiveRecord $this ->owner */
+        return $this->owner->className() . '[ObjectTag:' . self::getCacheKeyById($this->owner->getPrimaryKey()) . ']';
     }
 
     /**
@@ -109,13 +110,27 @@ class ActiveRecordHelper extends Behavior
      */
     private function getCacheComponent()
     {
-        if (!($this->cache instanceof Cache)){
-            $this->cache = is_string($this->cache)?Yii::$app->{$this->cache}:null;
-            if(!$this->cache){
+        if (!($this->cache instanceof Cache)) {
+            $this->cache = is_string($this->cache) ? Yii::$app->{$this->cache} : null;
+            if (!$this->cache) {
                 throw new InvalidConfigException('Invalid cache Id');
             }
         }
 
         return $this->cache;
+    }
+
+    /**
+     * Return string for cache-key from varios primary key
+     * @param mixed $id
+     * @return string
+     */
+    private static function getCacheKeyById($id)
+    {
+        if (is_array($id)) {
+            return implode('|', ksort($id));
+        }
+
+        return (string)$id;
     }
 }
