@@ -128,7 +128,8 @@ class ActiveRecordHelper extends Behavior
     private static function getCacheKeyById($id)
     {
         if (is_array($id)) {
-            return implode('|', ksort($id));
+            ksort($id);
+            return implode('|', $id);
         }
 
         return (string)$id;
