@@ -18,7 +18,7 @@ install:
 
 before_script:
   - mysql -e 'create database yii2_tagdependency;'
-  - mysql yii2_multilingual < tests/migrations/mysql.sql
+  - mysql yii2_tagdependency < tests/migrations/mysql.sql
 
 script:
   - vendor/bin/phpunit --coverage-clover=coverage.xml --verbose $PHPUNIT_FLAGS
