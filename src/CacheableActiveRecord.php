@@ -5,8 +5,6 @@ namespace DevGroup\TagDependencyHelper;
 use Yii;
 use yii\base\Behavior;
 use yii\base\InvalidConfigException;
-use yii\base\InvalidParamException;
-use yii\caching\Cache;
 use yii\db\ActiveRecord;
 
 /**
@@ -37,7 +35,9 @@ class CacheableActiveRecord extends Behavior
     public function attach($owner)
     {
         if ($owner->hasMethod('commonTag', false) === false) {
-            throw new InvalidConfigException(Yii::t('app', 'You should add TagDependencyTrait to your model class {class}', ['class'=>$owner->className()]));
+            throw new InvalidConfigException(
+                Yii::t('app', 'You should add TagDependencyTrait to your model class {class}', ['class'=>$owner->className()])
+            );
         }
         return parent::attach($owner);
     }
