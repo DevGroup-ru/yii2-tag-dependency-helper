@@ -1,0 +1,42 @@
+language: php
+
+php:
+  - 5.5
+  - 5.6
+  - 7.0
+  - hhvm
+
+matrix:
+  fast_finish: true
+  allow_failures:
+    - php: hhvm
+
+install:
+  - travis_retry composer self-update && composer --version
+  - travis_retry composer global require fxp/composer-asset-plugin:~1.0
+  - travis_retry composer install --prefer-dist --no-interaction --dev
+
+before_script:
+  - mysql -e 'create database yii2_tagdependency;'
+  - mysql yii2_multilingual < tests/migrations/mysql.sql
+
+script:
+  - vendor/bin/phpunit --coverage-clover=coverage.xml --verbose $PHPUNIT_FLAGS
+
+after_script:
+  - |
+    if [ $TRAVIS_PHP_VERSION = '5.6' ]; then
+      pwd
+      travis_retry wget https://scrutinizer-ci.com/ocular.phar
+      php ocular.phar code-coverage:upload --format=php-clover coverage.xml
+    fi
+
+cache:
+  - vendor
+  - $HOME/.composer/cache
+
+after_success:
+  - |
+    if [ $TRAVIS_PHP_VERSION = '5.6' ]; then
+      bash <(curl -s https://codecov.io/bash)
+    fi

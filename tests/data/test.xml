@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dataset>
+    <post id="1" author_id="1" text="Post text 1" />
+    <post id="2" author_id="2" text="Post text 2" />
+    <post id="3" author_id="3" text="Post text 3" />
+
+</dataset>

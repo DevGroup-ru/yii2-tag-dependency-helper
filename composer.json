@@ -22,9 +22,18 @@
     "require": {
         "yiisoft/yii2": "~2.0.0"
     },
+    "require-dev": {
+        "phpunit/phpunit": "~4.0",
+        "phpunit/dbunit": "~1.0"
+    },
     "autoload": {
         "psr-4": {
-            "devgroup\\TagDependencyHelper\\": ""
+            "DevGroup\\TagDependencyHelper\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "DevGroup\\TagDependencyHelper\\tests\\": "tests/"
         }
     }
 }

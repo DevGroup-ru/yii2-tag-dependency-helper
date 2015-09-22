@@ -3,17 +3,42 @@ yii2-tag-dependency-helper
 [![Code Climate](https://codeclimate.com/github/DevGroup-ru/yii2-tag-dependency-helper/badges/gpa.svg)](https://codeclimate.com/github/DevGroup-ru/yii2-tag-dependency-helper)
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/DevGroup-ru/yii2-tag-dependency-helper/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/DevGroup-ru/yii2-tag-dependency-helper/?branch=master)
 [![Build Status](https://scrutinizer-ci.com/g/DevGroup-ru/yii2-tag-dependency-helper/badges/build.png?b=master)](https://scrutinizer-ci.com/g/DevGroup-ru/yii2-tag-dependency-helper/build-status/master)
-[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/DevGroup-ru/yii2-tag-dependency-helper/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
 
-Helper for unifying cache tag names with invalidation support for Yii2.
 
-Usage
------
+Helper for unifying cache tag names with invalidation support for Yii2 ActiveRecord models.
 
-In your model add behavior:
+## Installation
+
+The preferred way to install this extension is through [composer](http://getcomposer.org/download/).
+
+Either run
+
+```
+php composer.phar require --prefer-dist devgroup/yii2-tag-dependency-helper "*"
+```
+
+or add
+
+```
+"devgroup/yii2-tag-dependency-helper": "*"
+```
+
+to the require section of your `composer.json` file.
+
+## Core concept
+
+This extension introduces 2 standard cache tags types for ActiveRecord:
+- common tag - Tag is invalidated if any model of this type is updated/inserted
+- object tag - Tag is invalidated if exact model record is updated
+
+## Usage
+
+In your active record model add behavior and trait:
 
 
 ``` php
+
+use DevGroup\TagDependencyHelper\TagDependencyTrait;
 
 /**
  * @inheritdoc
@@ -21,9 +46,8 @@ In your model add behavior:
 public function behaviors()
 {
     return [
-        [
-            'class' => \devgroup\TagDependencyHelper\ActiveRecordHelper::className(),
-            'cache' => 'cache', // optional option - application id of cache component
+        'CacheableActiveRecord' => [
+            'class' => DevGroup\TagDependencyHelper\CacheableActiveRecord::className(),
         ],
     ];
 }
@@ -31,6 +55,41 @@ public function behaviors()
 ```
 
 This behavior automatically invalidates tags by model name and pair model-id.
+
+### Finding model
+
+There's a special method in TagDependencyTrait for finding models by ID with using tag cache:
+
+```php
+/**
+ * Finds or creates new model using or not using cache(objectTag is applied, not commonTag!)
+ * @param string|int $id ID of model to find
+ * @param bool $createIfEmptyId Create new model instance(record) if id is empty
+ * @param bool $useCache Use cache
+ * @param int $cacheLifetime Cache lifetime in seconds
+ * @param bool|\Exception $throwException False or exception instance to throw if model not found or (empty id AND createIfEmptyId==false)
+ * @return \yii\db\ActiveRecord|null|self|TagDependencyTrait
+ * @throws \Exception
+ */
+public static function loadModel(
+    $id,
+    $createIfEmptyId = false,
+    $useCache = true,
+    $cacheLifetime = 86400,
+    $throwException = false
+)
+{
+}
+```
+
+Example call: `$post = Post::loadModel('', false, false, 0, new \Exception("test2"));`
+
+For Post model instance(`$post`) cache will be automatically invalidated by object and common tags on update,insert,delete.
+
+Direct invalidation can be done by calling `$post->invalidateTags()`.
+
+ 
+### Adding cache tags in other scenarios
 
 If your cache entry should be flushed every time any row of model is edited - use `getCommonTag` helper function:
 
@@ -41,7 +100,7 @@ $models = Configurable::getDb()->cache(
     },
     86400,
     new TagDependency([
-        'tags' => ActiveRecordHelper::getCommonTag(Configurable::className()),
+        'tags' => NamingHelper::getCommonTag(Configurable::className()),
     ])
 );
 ```
@@ -61,7 +120,7 @@ if (false === $product = Yii::$app->cache->get($cacheKey)) {
         new TagDependency(
             [
                 'tags' => [
-                    ActiveRecordHelper::getObjectTag(Product::className(), $model_id),
+                    NamingHelper::getObjectTag(Product::className(), $model_id),
                 ]
             ]
         )
@@ -69,3 +128,13 @@ if (false === $product = Yii::$app->cache->get($cacheKey)) {
 }
 
 ```
+
+
+## Migrating from 0.0.x to 1.x
+
+1. We have changed namespace from `devgroup` to `DevGroup`
+2. We've splitted behavior into 3 components:
+
+- CacheableActiveRecord - behavior that adds invalidation on update/insert/delete of ActiveRecord model
+- TagDependencyTrait - trait that must be also added to ActiveRecord class, handles invalidation and adds new static method `loadModel`
+- NamingHelper - the only one class that handles naming policy for cache tags
