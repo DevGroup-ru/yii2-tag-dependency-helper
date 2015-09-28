@@ -64,6 +64,9 @@ class DatabaseTest extends \PHPUnit_Extensions_Database_TestCase
                 ],
                 'cache' => [
                     'class' => '\yii\caching\FileCache',
+                    'as lazy' => [
+                        'class' => 'DevGroup\TagDependencyHelper\LazyCache',
+                    ],
                 ],
             ],
         ]));
@@ -201,5 +204,37 @@ class DatabaseTest extends \PHPUnit_Extensions_Database_TestCase
 
         $this->assertEquals($post->className().'[CommonTag]', NamingHelper::getCommonTag($post));
         $this->assertEquals($post->className().'[ObjectTag:'.$post->id.']', NamingHelper::getObjectTag($post, $post->id));
+    }
+
+    public function testLazyCache()
+    {
+        $changed = false;
+        /** @var \yii\caching\Cache|\DevGroup\TagDependencyHelper\LazyCache $cache */
+        $cache = Yii::$app->cache;
+        $val = $cache->lazy(function() use(&$changed) {
+            $changed = true;
+            return 182;
+        }, 'LazyTest', 3600);
+        $this->assertEquals(182, $val);
+        $this->assertTrue($changed);
+
+        // don't clear and check again
+        $changed = false;
+        $val = $cache->lazy(function() use(&$changed) {
+            $changed = true;
+            return 182;
+        }, 'LazyTest', 3600);
+        $this->assertEquals(182, $val);
+        $this->assertFalse($changed);
+
+        // clear and check again
+        $cache->delete('LazyTest');
+        $changed = false;
+        $val = $cache->lazy(function() use(&$changed) {
+            $changed = true;
+            return 182;
+        }, 'LazyTest', 3600);
+        $this->assertEquals(182, $val);
+        $this->assertTrue($changed);
     }
 }
