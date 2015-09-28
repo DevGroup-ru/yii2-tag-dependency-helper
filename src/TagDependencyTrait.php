@@ -28,10 +28,10 @@ trait TagDependencyTrait
      * Returns common tag name for model instance
      * @return string tag name
      */
-    public function commonTag()
+    public static function commonTag()
     {
         /** @var \yii\db\ActiveRecord $this */
-        return NamingHelper::getCommonTag($this->className());
+        return NamingHelper::getCommonTag(static::className());
     }
 
     /**
@@ -124,7 +124,7 @@ trait TagDependencyTrait
         \yii\caching\TagDependency::invalidate(
             $this->getTagDependencyCacheComponent(),
             [
-                $this->commonTag(),
+                static::commonTag(),
                 $this->objectTag(),
             ]
         );

@@ -38,7 +38,7 @@ In your active record model add behavior and trait:
 
 ``` php
 
-use DevGroup\TagDependencyHelper\TagDependencyTrait;
+use \DevGroup\TagDependencyHelper\TagDependencyTrait;
 
 /**
  * @inheritdoc
@@ -47,7 +47,7 @@ public function behaviors()
 {
     return [
         'CacheableActiveRecord' => [
-            'class' => DevGroup\TagDependencyHelper\CacheableActiveRecord::className(),
+            'class' => \DevGroup\TagDependencyHelper\CacheableActiveRecord::className(),
         ],
     ];
 }
