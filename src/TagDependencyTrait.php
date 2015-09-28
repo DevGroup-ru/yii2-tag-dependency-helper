@@ -9,9 +9,13 @@ use yii\caching\TagDependency;
  * TagDependencyTrait features:
  * - retrieving common and object tags
  * - configuring cache component(through overriding getTagDependencyCacheComponent)
+ * - Identity Map pattern support
  */
 trait TagDependencyTrait
 {
+    /** @var array IdentityMap pattern support */
+    public static $identityMap = [];
+
     /**
      * @return \yii\caching\Cache
      */
@@ -47,6 +51,7 @@ trait TagDependencyTrait
      * @param bool $useCache Use cache
      * @param int $cacheLifetime Cache lifetime in seconds
      * @param bool|\Exception $throwException False or exception instance to throw if model not found or (empty id AND createIfEmptyId==false)
+     * @param bool $useIdentityMap True if we want to use identity map
      * @return \yii\db\ActiveRecord|null|self|TagDependencyTrait
      * @throws \Exception
      */
@@ -55,13 +60,14 @@ trait TagDependencyTrait
         $createIfEmptyId = false,
         $useCache = true,
         $cacheLifetime = 86400,
-        $throwException = false
+        $throwException = false,
+        $useIdentityMap = false
     ) {
         /** @var \yii\db\ActiveRecord|TagDependencyTrait $model */
         $model = null;
         if (empty($id)) {
             if ($createIfEmptyId === true) {
-                $model = new self;
+                $model = new static;
             } else {
                 if ($throwException !== false) {
                     throw $throwException;
@@ -69,22 +75,32 @@ trait TagDependencyTrait
                     return null;
                 }
             }
+        } elseif ($useIdentityMap === true) {
+            if (isset(static::$identityMap[$id])) {
+                return static::$identityMap[$id];
+            }
         }
+
         if ($useCache === true && $model===null) {
-            $model = Yii::$app->cache->get(self::className() . ":" . $id);
+            $model = Yii::$app->cache->get(static::className() . ":" . $id);
         }
         if (!is_object($model)) {
-            $model = self::findOne($id);
+            $model = static::findOne($id);
 
-            if (is_object($model) && $useCache === true) {
-                Yii::$app->cache->set(
-                    self::className() . ":" . $id,
-                    $model,
-                    $cacheLifetime,
-                    new TagDependency([
-                        'tags' => $model->objectTag()
-                    ])
-                );
+            if ($model !== null) {
+                if ($useIdentityMap === true) {
+                    static::$identityMap[$model->id] = &$model;
+                }
+                if ($useCache === true) {
+                    Yii::$app->cache->set(
+                        static::className() . ":" . $id,
+                        $model,
+                        $cacheLifetime,
+                        new TagDependency([
+                            'tags' => $model->objectTag(),
+                        ])
+                    );
+                }
             }
         }
         if (!is_object($model)) {
