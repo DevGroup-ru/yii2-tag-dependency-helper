@@ -129,6 +129,65 @@ if (false === $product = Yii::$app->cache->get($cacheKey)) {
 
 ```
 
+## Lazy cache
+
+Lazy cache is a technique inspired by [iiifx-production/yii2-lazy-cache](https://github.com/iiifx-production/yii2-lazy-cache) composer package.
+
+After configuring(see below) you can use it like this:
+
+```php
+$pages = Yii::$app->cache->lazy(function() {
+    return Page::find()->where(['active'=>1])->all();
+}, 'AllActivePages', 3600, $dependency);
+```
+
+In this example Pages find query will be performed only if cache entry with key `AllActivePages` will not be found.
+After successful retrieving of models array the result will be automatically stored in cache 
+with `AllActivePages` as cache key for 3600 seconds and with `$dependency` as Cache dependency.  
+
+### Configuring - Performance-way
+
+For performance reasons(yii2 behaviors are slower then traits) - create your own `\yii\caching\Cache` class
+and add `LazyCacheTrait` to it, for example:
+
+```php
+namespace app\components;
+
+class MyCache extends \yii\caching\FileCache {
+    use \DevGroup\TagDependencyHelper\LazyCacheTrait;
+}
+```
+
+And modify your application configuration to use your cache component:
+
+```php
+return [
+    'components' => [
+        'class' => '\app\components\MyCache',
+    ],
+];
+```
+
+Now you can use lazy cache:
+
+
+### Configuring - Behavior-way
+
+Just modify your configuration like this:
+
+```php
+return [
+    'components' => [
+        'cache' => [
+            'class' => '\yii\caching\FileCache',
+            'as lazy' => [
+                'class' => '\DevGroup\TagDependencyHelper\LazyCache',
+            ],
+        ],
+    ],
+];
+
+```
 
 ## Migrating from 0.0.x to 1.x
 
