@@ -8,6 +8,8 @@
 
 namespace DevGroup\TagDependencyHelper;
 
+use yii\caching\TagDependency;
+
 /**
  * LazyCacheTrait is used when you have your own implementation of \yii\caching\Cache and don't want to use as behavior.
  * Trait is a bit faster behavior.
@@ -20,10 +22,10 @@ trait LazyCacheTrait
      * Performs lazy caching. If $cacheKey is not found in cache - run callable and cache result.
      * Callable is called only if no cache entry
      *
-     * @param callable                         $callable Callable to run for actual retrieving your info
-     * @param string                           $cacheKey Cache key string
-     * @param int                              $duration Duration of cache entry in seconds
-     * @param null|\yii\caching\Dependency     $dependency Cache dependency
+     * @param callable                                $callable Callable to run for actual retrieving your info
+     * @param string                                  $cacheKey Cache key string
+     * @param int                                     $duration Duration of cache entry in seconds
+     * @param null|\yii\caching\Dependency|string     $dependency Cache dependency
      *
      * @return mixed
      */
@@ -38,6 +40,16 @@ trait LazyCacheTrait
         $result = $owner->get($cacheKey);
         if ($result === false) {
             $result = call_user_func($callable);
+
+            if (is_string($dependency)) {
+                $dependency = [$dependency];
+            }
+            if (is_array($dependency)) {
+                $dependency = new TagDependency([
+                    'tags' => $dependency,
+                ]);
+            }
+
             $owner->set($cacheKey, $result, $duration, $dependency);
         }
         return $result;
