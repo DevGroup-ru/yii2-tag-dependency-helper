@@ -45,6 +45,44 @@ trait TagDependencyTrait
     }
 
     /**
+     * Returns composite tags name including fields
+     * @return array tag names
+     */
+    public function objectCompositeTag()
+    {
+        /** @var \yii\db\ActiveRecord|TagDependencyTrait $this */
+        $cacheFields = $this->cacheCompositeTagFields();
+        $cacheFields = (is_array($cacheFields[0])) ? $cacheFields : [$cacheFields];
+        $tags = [];
+
+        foreach ($cacheFields as $tagFields) {
+            $tag = [];
+
+            foreach ($tagFields as $tagField) {
+                $tag[$tagField] = $this->$tagField;
+            }
+
+            $tags[] = NamingHelper::getCompositeTag($this->className(), $tag);
+        }
+
+        return $tags;
+    }
+
+    /**
+     * Specific fields from model for build composite tags for invalidate
+     * Example:
+     * return [
+     *  ['field1', 'field2'],
+     *  ['field1', 'field2', 'field3'],
+     * ];
+     * @return array
+     */
+    protected function cacheCompositeTagFields()
+    {
+        return [];
+    }
+
+    /**
      * Finds or creates new model using or not using cache(objectTag is applied)
      * @param string|int $id ID of model to find
      * @param bool $createIfEmptyId Create new model instance(record) if id is empty
@@ -125,9 +163,18 @@ trait TagDependencyTrait
             $this->getTagDependencyCacheComponent(),
             [
                 static::commonTag(),
-                $this->objectTag(),
+                $this->objectTag()
             ]
         );
+
+        if (!empty($this->cacheCompositeTagFields())) {
+            var_dump('inv');
+            \yii\caching\TagDependency::invalidate(
+                $this->getTagDependencyCacheComponent(),
+                $this->objectCompositeTag()
+            );
+        }
+
         return true;
     }
 
