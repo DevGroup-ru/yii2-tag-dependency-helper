@@ -75,7 +75,7 @@ class DatabaseTest extends \PHPUnit_Extensions_Database_TestCase
                 'class' => Connection::className(),
                 'dsn' => 'mysql:host=localhost;dbname=yii2_tagdependency',
                 'username' => 'root',
-                'password' => 'vagrant', // TODO IF password is empty, error base auth
+                'password' => '', // TODO: IF password is empty, error database auth in vagrant
             ]);
 
             Yii::$app->getDb()->open();

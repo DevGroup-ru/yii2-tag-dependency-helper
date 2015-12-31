@@ -4,5 +4,3 @@ coverage
 tests/runtime
 coverage.xml
 .vagrant
-.idea
-.DS_STORE
