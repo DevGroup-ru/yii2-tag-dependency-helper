@@ -16,11 +16,15 @@
         {
             "name": "Pavel Fedotov",
             "email": "fps.06@mail.ru"
+        },
+        {
+            "name": "Salikh Fakhrutdinov",
+            "email": "me@free6k.ru"
         }
     ],
     "minimum-stability": "dev",
     "require": {
-        "yiisoft/yii2": "~2.0.0"
+        "yiisoft/yii2": "~2.0.6"
     },
     "require-dev": {
         "phpunit/phpunit": "~4.0",

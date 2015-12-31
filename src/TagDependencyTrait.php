@@ -9,6 +9,7 @@ use yii\caching\TagDependency;
  * TagDependencyTrait features:
  * - retrieving common and object tags
  * - configuring cache component(through overriding getTagDependencyCacheComponent)
+ * - configuring composite tags(through overriding cacheCompositeTagFields)
  * - Identity Map pattern support
  */
 trait TagDependencyTrait
@@ -52,7 +53,12 @@ trait TagDependencyTrait
     {
         /** @var \yii\db\ActiveRecord|TagDependencyTrait $this */
         $cacheFields = $this->cacheCompositeTagFields();
-        $cacheFields = (is_array($cacheFields[0])) ? $cacheFields : [$cacheFields];
+
+        if(empty($cacheFields)) {
+            return [];
+        }
+
+        $cacheFields = (is_array($cacheFields) && !empty($cacheFields) && is_array($cacheFields[0])) ? $cacheFields : [$cacheFields];
         $tags = [];
 
         foreach ($cacheFields as $tagFields) {
@@ -168,7 +174,6 @@ trait TagDependencyTrait
         );
 
         if (!empty($this->cacheCompositeTagFields())) {
-            var_dump('inv');
             \yii\caching\TagDependency::invalidate(
                 $this->getTagDependencyCacheComponent(),
                 $this->objectCompositeTag()

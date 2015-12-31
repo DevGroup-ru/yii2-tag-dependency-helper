@@ -59,9 +59,7 @@ class NamingHelper
             throw new InvalidParamException('Param $class must be a string or an object.');
         }
 
-        return $class . '[CompositeTag(' . self::getCacheKeyById($fields, true) . '):(' . self::getCacheKeyById(
-            $fields
-        ) . ')]';
+        return $class . '[CompositeTag(' . self::getCacheKeyById($fields, true) . '):(' . self::getCacheKeyById($fields) . ')]';
     }
 
     /**
