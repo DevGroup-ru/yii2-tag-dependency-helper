@@ -19,8 +19,7 @@ class NamingHelper
     {
         if (is_object($class) && $class instanceof ActiveRecord) {
             $class = $class->className();
-        }
-        if (!is_string($class)) {
+        } elseif (!is_string($class)) {
             throw new InvalidParamException('Param $class must be a string or an object.');
         }
         return $class . '[ObjectTag:' . self::getCacheKeyById($id) . ']';
@@ -36,8 +35,7 @@ class NamingHelper
     {
         if (is_object($class) && $class instanceof ActiveRecord) {
             $class = $class->className();
-        }
-        if (!is_string($class)) {
+        } elseif (!is_string($class)) {
             throw new InvalidParamException('Param $class must be a string or an object.');
         }
         return $class . '[CommonTag]';
@@ -54,12 +52,16 @@ class NamingHelper
     {
         if (is_object($class) && $class instanceof ActiveRecord) {
             $class = $class->className();
-        }
-        if (!is_string($class)) {
+        } elseif (!is_string($class)) {
             throw new InvalidParamException('Param $class must be a string or an object.');
         }
 
-        return $class . '[CompositeTag(' . self::getCacheKeyById($fields, true) . '):(' . self::getCacheKeyById($fields) . ')]';
+        return $class .
+            '[CompositeTag(' .
+            self::getCacheKeyById($fields, true) .
+            '):(' .
+            self::getCacheKeyById($fields) .
+            ')]';
     }
 
     /**

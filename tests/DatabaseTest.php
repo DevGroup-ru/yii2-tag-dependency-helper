@@ -13,6 +13,7 @@ use DevGroup\TagDependencyHelper\tests\models\PostCompositeNoOverride;
 use DevGroup\TagDependencyHelper\tests\models\PostNoTrait;
 use Yii;
 use yii\base\InvalidConfigException;
+use yii\base\InvalidParamException;
 use yii\caching\TagDependency;
 use yii\db\ActiveRecord;
 use yii\db\Connection;
@@ -203,9 +204,17 @@ class DatabaseTest extends \PHPUnit_Extensions_Database_TestCase
 
         $this->assertNull(Post::loadModel('', false));
 
-        $this->assertEquals($post->className().'[CommonTag]', NamingHelper::getCommonTag($post));
-        $this->assertEquals($post->className().'[ObjectTag:'.$post->id.']', NamingHelper::getObjectTag($post, $post->id));
+        $this->assertEquals(
+            $post->className().'[CommonTag]',
+            NamingHelper::getCommonTag($post)
+        );
+        $this->assertEquals(
+            $post->className().'[ObjectTag:'.$post->id.']',
+            NamingHelper::getObjectTag($post, $post->id)
+        );
     }
+
+
 
     public function testLazyCache()
     {
@@ -303,5 +312,35 @@ class DatabaseTest extends \PHPUnit_Extensions_Database_TestCase
         );
 
         $this->assertEquals($text_for_update, $post->text);
+
+        $this->assertEquals(
+            'DevGroup\TagDependencyHelper\tests\models\PostComposite[CompositeTag(author_id):(2)]',
+            NamingHelper::getCompositeTag($post, ['author_id' => $id_author])
+        );
+
+        $exceptionThrown = false;
+        try {
+            NamingHelper::getCompositeTag([], []);
+        } catch (InvalidParamException $e) {
+            $exceptionThrown = true;
+        }
+        $this->assertTrue($exceptionThrown);
+
+        $exceptionThrown = false;
+        try {
+            NamingHelper::getObjectTag([], 1);
+        } catch (InvalidParamException $e) {
+            $exceptionThrown = true;
+        }
+        $this->assertTrue($exceptionThrown);
+
+        $exceptionThrown = false;
+        try {
+            NamingHelper::getCommonTag([]);
+        } catch (InvalidParamException $e) {
+            $exceptionThrown = true;
+        }
+        $this->assertTrue($exceptionThrown);
     }
+
 }
