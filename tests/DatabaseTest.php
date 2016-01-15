@@ -6,16 +6,16 @@
 namespace DevGroup\TagDependencyHelper\tests;
 
 use DevGroup\TagDependencyHelper\NamingHelper;
+use DevGroup\TagDependencyHelper\TagDependencyTrait;
 use DevGroup\TagDependencyHelper\tests\models\Post;
+use DevGroup\TagDependencyHelper\tests\models\PostComposite;
+use DevGroup\TagDependencyHelper\tests\models\PostCompositeNoOverride;
 use DevGroup\TagDependencyHelper\tests\models\PostNoTrait;
 use Yii;
-use yii\base\ExitException;
 use yii\base\InvalidConfigException;
 use yii\caching\TagDependency;
-use yii\helpers\Url;
-use yii\web\Application;
+use yii\db\ActiveRecord;
 use yii\db\Connection;
-use yii\web\ServerErrorHttpException;
 
 /**
  * DatabaseTestCase
@@ -75,7 +75,7 @@ class DatabaseTest extends \PHPUnit_Extensions_Database_TestCase
                 'class' => Connection::className(),
                 'dsn' => 'mysql:host=localhost;dbname=yii2_tagdependency',
                 'username' => 'root',
-                'password' => '',
+                'password' => '', // TODO: IF password is empty, error database auth in vagrant
             ]);
 
             Yii::$app->getDb()->open();
@@ -108,6 +108,7 @@ class DatabaseTest extends \PHPUnit_Extensions_Database_TestCase
         parent::tearDown();
         $this->destroyApplication();
     }
+
     /**
      * Destroys application in Yii::$app by setting it to null.
      */
@@ -236,5 +237,71 @@ class DatabaseTest extends \PHPUnit_Extensions_Database_TestCase
         }, 'LazyTest', 3600);
         $this->assertEquals(182, $val);
         $this->assertTrue($changed);
+    }
+
+    public function testCompositeTag()
+    {
+        $id_author = 3;
+        $text_for_update = 'Composite???';
+
+        /* Tests for not configured settings of composite tags */
+        $query = PostCompositeNoOverride::find()->where(['author_id' => $id_author]);
+        $tag_name = [NamingHelper::getCompositeTag(PostCompositeNoOverride::className(), ['author_id' => $id_author])];
+
+        /* @var TagDependencyTrait|ActiveRecord $post */
+        $post = PostCompositeNoOverride::getDb()->cache(
+            function ($db) use ($query) {
+                return $query->one($db);
+            },
+            0,
+            new TagDependency(
+                [
+                    'tags' => $tag_name
+                ]
+            )
+        );
+
+        $this->assertNotNull($post);
+        $this->assertNotEquals($text_for_update, $post->text);
+        $this->assertNotEquals($post->objectCompositeTag(), $tag_name);
+
+        /* Tests for configured settings of composite tags */
+        $id_author = 2;
+
+        $query = PostComposite::find()->where(['author_id' => $id_author]);
+        $tag_name = [NamingHelper::getCompositeTag(PostComposite::className(), ['author_id' => $id_author])];
+
+        $post = PostComposite::getDb()->cache(
+            function ($db) use ($query) {
+                return $query->one($db);
+            },
+            0,
+            new TagDependency(
+                [
+                    'tags' => $tag_name
+                ]
+            )
+        );
+
+        $this->assertNotEquals($text_for_update, $post->text);
+        $this->assertEquals($post->objectCompositeTag(), $tag_name);
+
+        /* Tests for invalidates composite tags */
+        $post->text = $text_for_update;
+        $post->save();
+
+        $post = PostComposite::getDb()->cache(
+            function ($db) use ($query) {
+                return $query->one($db);
+            },
+            0,
+            new TagDependency(
+                [
+                    'tags' => $tag_name
+                ]
+            )
+        );
+
+        $this->assertEquals($text_for_update, $post->text);
     }
 }

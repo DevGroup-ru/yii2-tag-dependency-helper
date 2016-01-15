@@ -9,6 +9,7 @@ use yii\caching\TagDependency;
  * TagDependencyTrait features:
  * - retrieving common and object tags
  * - configuring cache component(through overriding getTagDependencyCacheComponent)
+ * - configuring composite tags(through overriding cacheCompositeTagFields)
  * - Identity Map pattern support
  */
 trait TagDependencyTrait
@@ -42,6 +43,49 @@ trait TagDependencyTrait
     {
         /** @var \yii\db\ActiveRecord $this */
         return NamingHelper::getObjectTag($this->className(), $this->getPrimaryKey());
+    }
+
+    /**
+     * Returns composite tags name including fields
+     * @return array tag names
+     */
+    public function objectCompositeTag()
+    {
+        /** @var \yii\db\ActiveRecord|TagDependencyTrait $this */
+        $cacheFields = $this->cacheCompositeTagFields();
+
+        if(empty($cacheFields)) {
+            return [];
+        }
+
+        $cacheFields = (is_array($cacheFields) && !empty($cacheFields) && is_array($cacheFields[0])) ? $cacheFields : [$cacheFields];
+        $tags = [];
+
+        foreach ($cacheFields as $tagFields) {
+            $tag = [];
+
+            foreach ($tagFields as $tagField) {
+                $tag[$tagField] = $this->$tagField;
+            }
+
+            $tags[] = NamingHelper::getCompositeTag($this->className(), $tag);
+        }
+
+        return $tags;
+    }
+
+    /**
+     * Specific fields from model for build composite tags for invalidate
+     * Example:
+     * return [
+     *  ['field1', 'field2'],
+     *  ['field1', 'field2', 'field3'],
+     * ];
+     * @return array
+     */
+    protected function cacheCompositeTagFields()
+    {
+        return [];
     }
 
     /**
@@ -125,9 +169,17 @@ trait TagDependencyTrait
             $this->getTagDependencyCacheComponent(),
             [
                 static::commonTag(),
-                $this->objectTag(),
+                $this->objectTag()
             ]
         );
+
+        if (!empty($this->cacheCompositeTagFields())) {
+            \yii\caching\TagDependency::invalidate(
+                $this->getTagDependencyCacheComponent(),
+                $this->objectCompositeTag()
+            );
+        }
+
         return true;
     }
 

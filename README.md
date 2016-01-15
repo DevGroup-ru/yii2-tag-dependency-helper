@@ -30,6 +30,7 @@ to the require section of your `composer.json` file.
 This extension introduces 2 standard cache tags types for ActiveRecord:
 - common tag - Tag is invalidated if any model of this type is updated/inserted
 - object tag - Tag is invalidated if exact model record is updated
+- composite tag - Tag is invalidated if model with specified fields record is updated
 
 ## Usage
 
@@ -127,6 +128,31 @@ if (false === $product = Yii::$app->cache->get($cacheKey)) {
     );
 }
 
+```
+
+If your cache entry should be flushed only when row of model with specified fields is edited - use `getCompositeTag` helper function and override function `cacheCompositeTagFields` in model:
+
+``` php
+//in model for cache, in this case Comments model
+protected function cacheCompositeTagFields()
+{
+    return ['id_app', 'object_table', 'id_object'];
+}
+
+//Data for caching
+$comments = Comments::getDb()->cache(
+    function ($db) use ($id_app, $id_object, $object_table) {
+        return Comments::find()->where(['id_app' => $id_app, 'object_table' => $object_table, 'id_object' => $id_object])->all($db);
+    },
+    0,
+    new TagDependency([
+        'tags' => [
+            NamingHelper::getCompositeTag(Comments::className(), ['id_app' => $id_app, 'object_table' => $object_table, 'id_object' => $id_object])
+        ]
+    ])
+);
+
+//PROFIT!
 ```
 
 ## Lazy cache
