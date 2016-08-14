@@ -199,7 +199,7 @@ trait TagDependencyTrait
             ]
         );
 
-        if (!empty($this->cacheCompositeTagFields())) {
+        if ($this->cacheCompositeTagFields()) {
             \yii\caching\TagDependency::invalidate(
                 $this->getTagDependencyCacheComponent(),
                 $this->objectCompositeTag($oldFields)
