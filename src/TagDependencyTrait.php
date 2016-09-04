@@ -136,7 +136,8 @@ trait TagDependencyTrait
         $model = null;
         if (empty($id)) {
             if ($createIfEmptyId === true) {
-                $model = new static;
+                $model = Yii::createObject(['class'=>static::class]);
+                $model->loadDefaultValues();
             } else {
                 if ($throwException !== false) {
                     throw $throwException;
