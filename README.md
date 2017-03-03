@@ -1,5 +1,9 @@
 yii2-tag-dependency-helper
 ==========================
+[![Latest Stable Version](https://poser.pugx.org/devgroup/yii2-tag-dependency-helper/v/stable)](https://packagist.org/packages/devgroup/yii2-tag-dependency-helper)
+[![Total Downloads](https://poser.pugx.org/devgroup/yii2-tag-dependency-helper/downloads)](https://packagist.org/packages/devgroup/yii2-tag-dependency-helper)
+[![Latest Unstable Version](https://poser.pugx.org/devgroup/yii2-tag-dependency-helper/v/unstable)](https://packagist.org/packages/devgroup/yii2-tag-dependency-helper)
+[![License](https://poser.pugx.org/devgroup/yii2-tag-dependency-helper/license)](https://packagist.org/packages/devgroup/yii2-tag-dependency-helper)
 [![Code Climate](https://codeclimate.com/github/DevGroup-ru/yii2-tag-dependency-helper/badges/gpa.svg)](https://codeclimate.com/github/DevGroup-ru/yii2-tag-dependency-helper)
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/DevGroup-ru/yii2-tag-dependency-helper/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/DevGroup-ru/yii2-tag-dependency-helper/?branch=master)
 [![Build Status](https://travis-ci.org/DevGroup-ru/yii2-tag-dependency-helper.svg?branch=master)](https://travis-ci.org/DevGroup-ru/yii2-tag-dependency-helper)
@@ -29,7 +33,7 @@ to the require section of your `composer.json` file.
 
 This extension introduces 2 standard cache tags types for ActiveRecord:
 - common tag - Tag is invalidated if any model of this type is updated/inserted
-- object tag - Tag is invalidated if exact model record is updated
+- object tag - Tag is invalidated if exact model record is updated(ie. Product with id=2)
 - composite tag - Tag is invalidated if model with specified fields record is updated
 
 ## Usage
@@ -223,3 +227,7 @@ return [
 - CacheableActiveRecord - behavior that adds invalidation on update/insert/delete of ActiveRecord model
 - TagDependencyTrait - trait that must be also added to ActiveRecord class, handles invalidation and adds new static method `loadModel`
 - NamingHelper - the only one class that handles naming policy for cache tags
+
+---
+
+Brought to you by [DevGroup.ru](https://devgroup.ru/). Check out our another [open-source projects](https://github.com/DevGroup-ru)!
