@@ -11,7 +11,7 @@ class NamingHelper
     /**
      * Get object tag name.
      * @param string|ActiveRecord $class
-     * @param integer $id
+     * @param mixed $id
      * @return string
      * @throws \yii\base\InvalidParamException
      */
